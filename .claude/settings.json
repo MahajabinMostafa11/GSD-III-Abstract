@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd wiki/GSD-III-Abstract.wiki && git status:*)",
+      "Bash(cd wiki/GSD-III-Abstract.wiki && git diff:*)",
+      "Bash(cd wiki/GSD-III-Abstract.wiki && git log:*)",
+      "Bash(cd wiki/GSD-III-Abstract.wiki && git add:*)",
+      "Bash(cd wiki/GSD-III-Abstract.wiki && git commit *)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki status:*)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki diff:*)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki log:*)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki add:*)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki commit *)",
+      "Bash(./scripts/kg/build-graph.sh)",
+      "Bash(./wiki/init-wiki.sh)",
+      "Bash(./wiki/init-wiki.sh *)",
+      "Bash(./wiki/agents/claude-code/setup.sh)",
+      "Bash(./wiki/agents/claude-code/setup.sh *)",
+      "Bash(.venv/bin/python *)",
+      "Bash(uv run python *)"
+    ]
+  }
+}
