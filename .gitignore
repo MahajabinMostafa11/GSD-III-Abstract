@@ -26,3 +26,4 @@ __pycache__
 # --dev-self` writes them there (idempotent). They are deliberately NOT in
 # the tracked .gitignore because leading-slash anchors would resolve to a
 # derived project's own root and start matching its real files.
+.DS_Store
