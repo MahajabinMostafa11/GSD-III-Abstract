@@ -90,8 +90,9 @@ schema; where the two disagree, this file wins. The underlying pattern is
 - If two records look like the same paper, still create both pages, link them
   to each other with `related:`, and flag the pair in the log. Do not merge.
 - Each page records the corpus record it came from, so coverage can be
-  checked: `sources:` includes the DOI or PubMed ID when present, otherwise
-  the title.
+  checked: `record_key:` holds the record's key exactly as it appears in the
+  batch file, and `sources:` includes the DOI or PubMed ID when present,
+  otherwise the title.
 
 ## Rich pages, one paper per page
 
@@ -148,10 +149,17 @@ Name source-summary pages `Surname-Year-Short-Topic.md`.
 
 ## Batch ingestion
 
-- The corpus is ingested in batches listed under `raw sources/batches/`.
-  Ingest only the current batch, and never read ahead into later batches.
-- Within a batch, handle papers one at a time: write the paper's page, then
-  update the concept and entity pages it affects, then move on.
+- The corpus is ingested in chronological batches, `raw sources/batches/batch-N.csv`,
+  each holding complete records. Run a batch with the `/wiki-batch` skill
+  (`.claude/skills/wiki-batch/SKILL.md`). Use `/wiki-source` only for a single
+  source handed over interactively, never for corpus records.
+- Ingest only the current batch. Never open the full corpus file or a later
+  batch.
+- Within a batch, handle papers one at a time: read the record with
+  `scripts/show-record.py`, write the paper's page, update the concept and
+  entity pages it affects, then move on.
+- A batch is finished only when `scripts/check-batch-coverage.py` reports no
+  missing and no doubled records.
 - Do not stop to discuss individual papers with the user during a batch. Keep
   questions in a list and report them in the batch's log entry.
 - After each batch: run `/wiki-lint`, fix what it finds, update the index and

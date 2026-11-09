@@ -19,7 +19,9 @@
       "Bash(./wiki/agents/claude-code/setup.sh *)",
       "Bash(.venv/bin/python *)",
       "Bash(uv run python *)",
-      "Bash(python3 scripts/kg/lookup-ontology-term.py *)"
+      "Bash(python3 scripts/kg/lookup-ontology-term.py *)",
+      "Bash(python3 scripts/show-record.py *)",
+      "Bash(python3 scripts/check-batch-coverage.py *)"
     ]
   }
 }
