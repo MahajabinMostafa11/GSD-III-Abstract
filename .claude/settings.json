@@ -21,7 +21,9 @@
       "Bash(uv run python *)",
       "Bash(python3 scripts/kg/lookup-ontology-term.py *)",
       "Bash(python3 scripts/show-record.py *)",
-      "Bash(python3 scripts/check-batch-coverage.py *)"
+      "Bash(python3 scripts/check-batch-coverage.py *)",
+      "Bash(python3 scripts/check-page-structure.py *)",
+      "Bash(python3 scripts/wiki-reciprocity.py *)"
     ]
   }
 }
