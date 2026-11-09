@@ -6,7 +6,7 @@ A knowledge base tracking glycogen storage disease type III (GSD III; Cori/Forbe
 
 ## This repository uses LLM wiki memory
 
-GSD-III-Abstract keeps a persistent, LLM-maintained knowledge base under `wiki/GSD-III-Abstract.wiki/` (a separate git repo), following the [llm-wiki pattern](https://github.com/tobi/llm-wiki). It is the project's durable memory: every publication in `raw sources/` gets its own source-summary page, and findings accumulate into linked concept, entity, and synthesis pages over time. The corpus is ingested in batches, and the wiki is tagged `batch-N` after each one.
+GSD-III-Abstract keeps a persistent, LLM-maintained knowledge base under `wiki/GSD-III-Abstract.wiki/` (a separate git repo), following the llm-wiki pattern (`llm-wiki.md` in the project repo). It is the project's durable memory: every publication in `raw sources/` gets its own source-summary page, and findings accumulate into linked concept, entity, and synthesis pages over time. The corpus is ingested in batches, and the wiki is tagged `batch-N` after each one.
 
 Three operations, **Query** (read it), **Ingest** (write to it), and **Lint** (health-check it), are codified in `CLAUDE.md`, in `wiki/GSD-III-Abstract.wiki/SCHEMA_GSD-III-Abstract.md`, and in the `.claude/` skills (`/wiki-source`, `/wiki-experiment`, `/wiki-lint`). See also [llm-wiki.md](llm-wiki.md) in this repo for the underlying pattern.
 
