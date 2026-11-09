@@ -11,13 +11,15 @@
       "Bash(git -C wiki/GSD-III-Abstract.wiki log:*)",
       "Bash(git -C wiki/GSD-III-Abstract.wiki add:*)",
       "Bash(git -C wiki/GSD-III-Abstract.wiki commit *)",
+      "Bash(git -C wiki/GSD-III-Abstract.wiki tag *)",
       "Bash(./scripts/kg/build-graph.sh)",
       "Bash(./wiki/init-wiki.sh)",
       "Bash(./wiki/init-wiki.sh *)",
       "Bash(./wiki/agents/claude-code/setup.sh)",
       "Bash(./wiki/agents/claude-code/setup.sh *)",
       "Bash(.venv/bin/python *)",
-      "Bash(uv run python *)"
+      "Bash(uv run python *)",
+      "Bash(python3 scripts/kg/lookup-ontology-term.py *)"
     ]
   }
 }
