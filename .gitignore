@@ -27,3 +27,6 @@ __pycache__
 # the tracked .gitignore because leading-slash anchors would resolve to a
 # derived project's own root and start matching its real files.
 .DS_Store
+
+# Per-batch working files (flags, questions)
+.batch-work/

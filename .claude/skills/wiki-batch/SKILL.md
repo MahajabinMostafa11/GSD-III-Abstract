@@ -1,138 +1,117 @@
 ---
 name: wiki-batch
-description: Ingest one batch of the publication corpus into the wiki, record by record, following CLAUDE.md and the schema. Use when the user asks to ingest, run, or continue a batch (e.g. "ingest batch 2", "/wiki-batch 2").
+description: Ingest one batch of the publication corpus into the wiki, one record at a time through the wiki-paper helper agent, following CLAUDE.md and the schema. Use when the user asks to ingest, run, or continue a batch (e.g. "ingest batch 2", "/wiki-batch 2", "/wiki-batch 3 pilot").
 ---
 
-# Batch ingest
+# Batch ingest (coordinator)
 
-Ingest one batch from `raw sources/batches/` into the wiki. The batch number
-comes from the user's request (e.g. `/wiki-batch 3`). If no number is given,
-use the lowest-numbered batch that has no `batch-N` tag in the wiki repo:
+You coordinate. Each record is ingested by the `wiki-paper` agent in its own
+fresh context; you stay small. Do not read records, wiki pages, the index or
+the schema yourself during the batch.
+
+The batch number comes from the request (e.g. `/wiki-batch 3`). If none is
+given, use the lowest batch with no `batch-N` tag:
 
 ```bash
 git -C wiki/GSD-III-Abstract.wiki tag --list "batch-*"
 ```
 
-This skill replaces `/wiki-source` for corpus records. Its rules come from
-`CLAUDE.md` and `SCHEMA_GSD-III-Abstract.md`; where this skill is silent,
-those files decide.
-
-## Rules that apply throughout
-
-- Read only the current batch file. Never open the full corpus CSV or a later
-  batch.
-- Every record in the batch gets exactly one source-summary page. Nothing is
-  skipped, merged or summarized together with another record.
-- Do not stop to discuss records with the user. Keep a running list of
-  questions and doubts, and put it in the batch log entry.
-- Claims come only from the record's title, abstract and keywords. No
-  fetching online, no details from memory.
+**Pilot mode** (`/wiki-batch N pilot`): do only the first 10 missing records,
+then run section 3 steps 2–4, commit, and stop: no log entry, no tag, no
+push. Report for review.
 
 ## 1. Start
 
-1. Read `CLAUDE.md` and `wiki/GSD-III-Abstract.wiki/SCHEMA_GSD-III-Abstract.md`.
-2. Read `wiki/GSD-III-Abstract.wiki/index_GSD-III-Abstract.md` and the theme
-   hub pages, so you know which concept, treatment and entity pages and which
-   claims already exist.
-3. List the batch:
+```bash
+mkdir -p .batch-work
+python3 scripts/precheck-batch.py N
+python3 scripts/check-batch-coverage.py "raw sources/batches/batch-N.csv" wiki/GSD-III-Abstract.wiki
+```
 
-   ```bash
-   python3 scripts/show-record.py "raw sources/batches/batch-N.csv" --list
-   ```
+If `scripts/extract-fulltext.py` exists (full-text repo), also run
+`python3 scripts/extract-fulltext.py --batch N`; if it says the PDF folder is
+not reachable, stop and tell the user.
 
-4. Check which records already have pages (relevant when resuming a batch):
+The coverage check lists the records still MISSING, in batch order. Those
+are your work list. If `.batch-work/questions.md` exists from a session that
+stopped mid-batch, keep it.
 
-   ```bash
-   python3 scripts/check-batch-coverage.py "raw sources/batches/batch-N.csv" wiki/GSD-III-Abstract.wiki
-   ```
+## 2. One record at a time
 
-   Work through the records reported MISSING, in list order.
+For each missing record, in order, launch the `wiki-paper` agent with this
+prompt, and wait for it to finish before the next one:
 
-## 2. For each record, one at a time
+> Batch file: `raw sources/batches/batch-N.csv`. Record: `<record_key>`.
+> Ingest this one record.
 
-1. Show the full record:
+Never run two at once: they edit the same concept pages.
 
-   ```bash
-   python3 scripts/show-record.py "raw sources/batches/batch-N.csv" --index <i>
-   ```
-
-   It prints every abstract version found (fullest first), every field, the
-   Claude Enrichment notes (LLM-generated, not evidence) and the Raw Data.
-2. Decide the abstract to use: the fullest version that is the same paper's
-   abstract. Note its source on the page if it is not the Abstract column. If
-   no version exists, the page is `ingestion_depth: metadata-only`. If the
-   fullest is still cut off, tag `status/truncated-abstract`.
-3. Write the source-summary page with the 11 sections from `CLAUDE.md`, in
-   order, and every required frontmatter field from the schema, including
-   `record_key:` copied exactly from the record.
-4. Update the wiki around it:
-   - add the paper to existing claims it supports or complicates, or create a
-     new claim (with a new ID) if none fits;
-   - create or update the concept, treatment and entity pages it informs;
-   - any new disease page gets a MONDO binding through the ontology-binding
-     skill; phenotypes get HPO where clear;
-   - link the page to its theme hub, and the hub to the page;
-   - fix links in both directions.
-5. Move to the next record. Do not batch several records into one step.
-
-Commit in the wiki repo every 10 records or so, staging files by name, so a
-long batch is never at risk of losing work:
+Keep a running list of the one-line reports. After every 10 records, commit
+what changed, staging files by name:
 
 ```bash
-git -C wiki/GSD-III-Abstract.wiki add <files>
+git -C wiki/GSD-III-Abstract.wiki status --porcelain
+git -C wiki/GSD-III-Abstract.wiki add <each changed file by name>
 git -C wiki/GSD-III-Abstract.wiki commit -m "ingest: batch N records <i>-<j>"
 ```
 
+If a report says a step failed, or the agent did not report, run the
+coverage check: a record still MISSING gets the agent again once; if it fails
+twice, add it to `.batch-work/questions.md` and move on.
+
 ## 3. Finish the batch
 
-1. Confirm coverage. This must report 0 missing and 0 doubled:
+1. Coverage must report 0 missing and 0 doubled:
 
    ```bash
    python3 scripts/check-batch-coverage.py "raw sources/batches/batch-N.csv" wiki/GSD-III-Abstract.wiki
    ```
 
-2. Check page structure and link reciprocity, and fix until both report
-   nothing:
+2. Rebuild the index and the theme hubs' page lists:
+
+   ```bash
+   python3 scripts/build-index.py wiki/GSD-III-Abstract.wiki
+   ```
+
+3. Structure and reciprocity must both report nothing:
 
    ```bash
    python3 scripts/check-page-structure.py wiki/GSD-III-Abstract.wiki
    python3 scripts/wiki-reciprocity.py wiki/GSD-III-Abstract.wiki
    ```
 
-   Fix one-way links as the schema's Cross-Referencing section says: add the
-   paper to the target's claims or its "Further papers" line, add later
-   papers to the earlier paper's "Later papers in this wiki" line, and never
-   list citing pages on a `hub: true` page. Then run `/wiki-lint` and fix
-   what it finds.
-3. Run the Verification Gate (`wiki/agents/verification-gate.md`) over the
-   pages created or edited in this batch.
-4. Update `index_GSD-III-Abstract.md` and the Categories section of
-   `Home_GSD-III-Abstract.md` where a new representative page appeared.
-5. Commit the pages and index, then append the batch log entry and commit it
+   Fix what they report. For a structure failure on a page, or more than a
+   few one-way links, launch the `wiki-paper` agent with a prompt naming the
+   pages and the findings ("Fix only these findings; do not ingest anything").
+4. Run `/wiki-lint` and fix what it finds.
+5. Update the Categories section of `Home_GSD-III-Abstract.md` only if a new page is
+   significant enough to be a representative link.
+6. Commit the pages and index. Then append the batch log entry and commit it
    on its own:
 
    ```markdown
    ## [YYYY-MM-DD] batch | Batch N (<first year>–<last year>)
    - by: <git config user.name> via claude-code
    - model: <your true model identifier>
+   - process: coordinator + wiki-paper agent per record (fresh context each)
    - records ingested: <n>; pages created: <n>; pages updated: <n>
    - flags: needs-review <n>, needs-ontology <n>, truncated-abstract <n>, metadata-only <n>, possible-duplicate <n>
    - new claims: <n>; claims extended: <n>
-   - questions for the user: <list, or "none">
+   - questions for the user: <the contents of .batch-work/questions.md, or "none">
    ```
 
-6. Tag and push:
+7. Tag and push:
 
    ```bash
    git -C wiki/GSD-III-Abstract.wiki tag batch-N
    ```
 
-   Then push following `wiki/agents/wiki-write-protocol.md`, including the tag
-   (`git push origin batch-N`).
-7. Report to the user: records ingested, pages created and updated, flags,
+   Push following `wiki/agents/wiki-write-protocol.md`, including the tag
+   (`git push origin batch-N`). Then delete `.batch-work/questions.md`.
+8. Report to the user: records ingested, pages created and updated, flags,
    and the questions list.
 
 ## If the session ends mid-batch
 
-Nothing special is needed. The next session runs this skill for the same
-batch; the coverage check in step 1.4 shows which records are left.
+Run `/wiki-batch N` again. The coverage check shows which records are left;
+the questions file is kept.

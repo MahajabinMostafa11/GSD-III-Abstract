@@ -165,17 +165,21 @@ Name source-summary pages `Surname-Year-Short-Topic.md`.
   source handed over interactively, never for corpus records.
 - Ingest only the current batch. Never open the full corpus file or a later
   batch.
-- Within a batch, handle papers one at a time: read the record with
-  `scripts/show-record.py`, write the paper's page, update the concept and
-  entity pages it affects, then move on.
+- Within a batch, each paper is handled by the `wiki-paper` agent
+  (`.claude/agents/wiki-paper.md`) in a fresh context, one paper at a time:
+  it reads the record (`scripts/show-record.py`) and the pages it relates to
+  (`scripts/related-pages.py`), writes the paper's page, and updates the
+  claims, concept and entity pages it affects. `/wiki-batch` coordinates.
 - A batch is finished only when `scripts/check-batch-coverage.py` reports no
   missing and no doubled records, `scripts/check-page-structure.py` reports
   no failing pages, and `scripts/wiki-reciprocity.py` reports no one-way
   links (see the schema's Cross-Referencing rules for hub pages).
 - Do not stop to discuss individual papers with the user during a batch. Keep
   questions in a list and report them in the batch's log entry.
-- After each batch: run `/wiki-lint`, fix what it finds, update the index and
-  log, commit in the wiki repo, then tag the wiki repo `batch-N`.
+- After each batch: rebuild the index and the theme hubs' page lists with
+  `scripts/build-index.py` (they are never edited by hand), run `/wiki-lint`,
+  fix what it finds, update the log, commit in the wiki repo, then tag the
+  wiki repo `batch-N`.
 - Each batch's log entry records: the date, the model used, the batch number,
   the number of papers ingested, the pages created and updated, and any
   `needs-review` or `needs-ontology` flags.
