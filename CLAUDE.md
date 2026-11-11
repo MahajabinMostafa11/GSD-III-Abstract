@@ -114,8 +114,9 @@ Every source-summary page uses these sections, in this order:
 7. **Limitations and caveats**: those the source states, plus obvious scope
    limits (e.g. single case, small sample).
 8. **Connections**: links to the concept and entity pages this paper informs,
-   and a "Later papers in this wiki" line listing later source-summary pages
-   that link to this one (kept up to date as later papers arrive).
+   and the back-link lines ("Later papers in this wiki", "Also cited on"),
+   which `scripts/update-backlinks.py` writes from the links; agents never
+   edit them.
 9. **Ontology terms**: diseases (MONDO), and phenotypes and genes where clear.
 10. **Source link**.
 11. **Record metadata**: every remaining field of the corpus record, grouped
@@ -134,6 +135,11 @@ from, with a link to that paper's page. When papers disagree, show each one's
 result side by side. Never blend several papers into one unattributed claim.
 
 Name source-summary pages `Surname-Year-Short-Topic.md`.
+
+The first author, for the page name and the Citation, is taken from PubMed's
+full author list (FAU) when the record has one; otherwise from Web of
+Science, then the Google Scholar BibTeX, then the Authors column. If the
+sources disagree, say so in the Citation section.
 
 ## Conventions when editing
 
@@ -165,15 +171,18 @@ Name source-summary pages `Surname-Year-Short-Topic.md`.
   source handed over interactively, never for corpus records.
 - Ingest only the current batch. Never open the full corpus file or a later
   batch.
-- Within a batch, each paper is handled by the `wiki-paper` agent
-  (`.claude/agents/wiki-paper.md`) in a fresh context, one paper at a time:
-  it reads the record (`scripts/show-record.py`) and the pages it relates to
-  (`scripts/related-pages.py`), writes the paper's page, and updates the
-  claims, concept and entity pages it affects. `/wiki-batch` coordinates.
+- Within a batch, papers are handled by the `wiki-paper` agent
+  (`.claude/agents/wiki-paper.md`) in runs of 5 consecutive records, each
+  run in a fresh context and one paper after another: for each paper it
+  reads the record and its related pages (`scripts/paper-brief.py`), writes
+  the paper's page, and updates the claims, concept and entity pages it
+  affects. `/wiki-batch` coordinates.
 - A batch is finished only when `scripts/check-batch-coverage.py` reports no
   missing and no doubled records, `scripts/check-page-structure.py` reports
   no failing pages, and `scripts/wiki-reciprocity.py` reports no one-way
   links (see the schema's Cross-Referencing rules for hub pages).
+- At the end of each batch, any concept or treatment page with more than 25
+  claims is split into sub-topic pages (schema, "Page splitting").
 - Do not stop to discuss individual papers with the user during a batch. Keep
   questions in a list and report them in the batch's log entry.
 - After each batch: rebuild the index and the theme hubs' page lists with

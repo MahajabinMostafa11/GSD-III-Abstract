@@ -27,7 +27,10 @@
       "Bash(python3 scripts/related-pages.py *)",
       "Bash(python3 scripts/precheck-batch.py *)",
       "Bash(python3 scripts/build-index.py *)",
-      "Bash(mkdir -p .batch-work)"
+      "Bash(mkdir -p .batch-work)",
+      "Bash(python3 scripts/update-backlinks.py *)",
+      "Bash(python3 scripts/claim-counts.py *)",
+      "Bash(python3 scripts/paper-brief.py *)"
     ]
   }
 }
